@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+
+# Base de données
+*.sql~
+
+# Données sensibles
+data/
+
+# VSCode
+.vscode/
+
+# Système
+.DS_Store
+*.log
