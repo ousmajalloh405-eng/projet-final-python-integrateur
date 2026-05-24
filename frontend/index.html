@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Étudiants</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; }
+
+        header {
+            background: #065A82; color: white;
+            padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-size: 24px; }
+
+        .toolbar {
+            background: white; padding: 15px 30px;
+            display: flex; gap: 15px; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .toolbar input, .toolbar select {
+            padding: 8px 12px; border: 1px solid #ddd;
+            border-radius: 6px; font-size: 14px;
+        }
+        .toolbar input { width: 250px; }
+
+        .btn {
+            padding: 8px 20px; border: none;
+            border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        .btn-primary { background: #065A82; color: white; }
+        .btn-success { background: #10B981; color: white; }
+        .btn-warning { background: #FBBF24; color: #333; }
+        .btn-danger  { background: #EF4444; color: white; }
+        .btn:hover   { opacity: 0.85; }
+
+        .stats { padding: 10px 30px; font-size: 14px; color: #666; }
+
+        .table-container {
+            margin: 10px 30px; background: white;
+            border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #065A82; color: white; }
+        thead th { padding: 12px 15px; text-align: left; font-size: 14px; }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+        tbody tr:hover { background: #e0f2fe; }
+        tbody td { padding: 10px 15px; font-size: 14px; border-bottom: 1px solid #eee; }
+
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .badge-db   { background: #065A82; color: white; }
+        .badge-json { background: #FBBF24; color: #333; }
+
+        .pagination {
+            display: flex; justify-content: center;
+            gap: 8px; padding: 20px;
+        }
+        .pagination button {
+            padding: 6px 12px; border: 1px solid #ddd;
+            background: white; border-radius: 4px; cursor: pointer;
+        }
+        .pagination button.active { background: #065A82; color: white; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white; border-radius: 12px;
+            padding: 30px; width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal h2 { margin-bottom: 20px; color: #065A82; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 8px 12px;
+            border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+        }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+    <h1>🎓 Gestion des Étudiants</h1>
+    <span>Ousmane Jalloh · DEV DATA P8</span>
+<a href="dashboard.html" style="color:white;text-decoration:none;background:rgba(255,255,255,0.2);padding:8px 15px;border-radius:6px;">📊 Dashboard</a>
+</header>
+
+<!-- BARRE DE RECHERCHE -->
+<div class="toolbar">
+    <input type="text" id="recherche" placeholder="🔍 Rechercher..." oninput="filtrer()">
+    <select id="filtreClasse" onchange="filtrer()">
+        <option value="">Toutes les classes</option>
+    </select>
+    <button class="btn btn-success" onclick="ouvrirModalAjout()">➕ Ajouter</button>
+    <button class="btn btn-primary" onclick="chargerEtudiants()">🔄 Actualiser</button>
+</div>
+
+<!-- COMPTEUR -->
+<div class="stats" id="stats">Chargement...</div>
+
+<!-- TABLEAU -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Classe</th>
+                <th>Moyenne</th>
+                <th>Source</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableau">
+            <tr><td colspan="7" class="loading">⏳ Chargement...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- PAGINATION -->
+<div class="pagination" id="pagination"></div>
+
+<!-- MODAL AJOUTER -->
+<div class="modal-overlay" id="modalAjout">
+    <div class="modal">
+        <h2>➕ Ajouter un étudiant</h2>
+        <div class="form-group">
+            <label>Code école</label>
+            <input type="text" id="add_code" placeholder="Ex: AAD004">
+        </div>
+        <div class="form-group">
+            <label>Numéro</label>
+            <input type="text" id="add_numero" placeholder="Ex: LIHGFR0">
+        </div>
+        <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" id="add_prenom">
+        </div>
+        <div class="form-group">
+            <label>Nom</label>
+            <input type="text" id="add_nom">
+        </div>
+        <div class="form-group">
+            <label>Date de naissance</label>
+            <input type="text" id="add_date" placeholder="Ex: 01/01/2010">
+        </div>
+        <div class="form-group">
+            <label>Classe</label>
+            <input type="text" id="add_classe" placeholder="Ex: 6emA">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-danger" onclick="fermerModals()">❌ Annuler</button>
+            <button class="btn btn-success" onclick="ajouterEtudiant()">✅ Ajouter</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MODIFIER -->
+<div class="modal-overlay" id="modalModifier">
+    <div class="modal">
+        <h2>✏️ Modifier un étudiant</h2>
+        <input type="hidden" id="edit_numero">
+        <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" id="edit_prenom">
+        </div>
+        <div class="form-group">
+            <label>Nom</label>
+            <input type="text" id="edit_nom">
+        </div>
+        <div class="form-group">
+            <label>Classe</label>
+            <input type="text" id="edit_classe">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-danger" onclick="fermerModals()">❌ Annuler</button>
+            <button class="btn btn-warning" onclick="modifierEtudiant()">✅ Modifier</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tousLesEtudiants = [];
+    let etudiantsFiltres = [];
+    let pageCourante = 1;
+    const parPage = 10;
+
+    async function chargerEtudiants() {
+        document.getElementById("tableau").innerHTML =
+            '<tr><td colspan="7" class="loading">⏳ Chargement...</td></tr>';
+        const response = await fetch("http://127.0.0.1:8000/etudiants");
+        const data = await response.json();
+        tousLesEtudiants = data.etudiants;
+        etudiantsFiltres = tousLesEtudiants;
+        remplirFiltreClasses();
+        afficherPage(1);
+    }
+
+    function remplirFiltreClasses() {
+        const classes = [...new Set(tousLesEtudiants.map(e => e.nom_classe))].sort();
+        const select = document.getElementById("filtreClasse");
+        select.innerHTML = '<option value="">Toutes les classes</option>';
+        classes.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
+    }
+
+    function filtrer() {
+        const recherche = document.getElementById("recherche").value.toLowerCase();
+        const classe    = document.getElementById("filtreClasse").value;
+        etudiantsFiltres = tousLesEtudiants.filter(e => {
+            const matchR = !recherche ||
+                e.nom.toLowerCase().includes(recherche) ||
+                e.prenom.toLowerCase().includes(recherche) ||
+                e.numero.toLowerCase().includes(recherche);
+            const matchC = !classe || e.nom_classe === classe;
+            return matchR && matchC;
+        });
+        afficherPage(1);
+    }
+
+    function afficherPage(page) {
+        pageCourante = page;
+        const debut = (page - 1) * parPage;
+        const data  = etudiantsFiltres.slice(debut, debut + parPage);
+        document.getElementById("stats").textContent =
+            `${etudiantsFiltres.length} étudiant(s) trouvé(s)`;
+        const tbody = document.getElementById("tableau");
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="loading">Aucun étudiant trouvé</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(e => `
+            <tr>
+                <td>${e.numero}</td>
+                <td>${e.nom}</td>
+                <td>${e.prenom}</td>
+                <td>${e.nom_classe}</td>
+                <td>${e.moyenne_generale || "—"}</td>
+                <td><span class="badge badge-${e.source.toLowerCase()}">${e.source}</span></td>
+                <td>
+                    <button class="btn btn-warning" style="padding:4px 10px;font-size:12px"
+                        onclick="ouvrirModalModifier('${e.numero}','${e.prenom}','${e.nom}','${e.nom_classe}')">
+                        ✏️
+                    </button>
+                    <button class="btn btn-danger" style="padding:4px 10px;font-size:12px"
+                        onclick="archiver('${e.numero}')">
+                        🗄️
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+        afficherPagination();
+    }
+
+    function afficherPagination() {
+        const total = Math.ceil(etudiantsFiltres.length / parPage);
+        let html = "";
+        for (let i = 1; i <= total; i++) {
+            html += `<button class="${i === pageCourante ? 'active' : ''}"
+                     onclick="afficherPage(${i})">${i}</button>`;
+        }
+        document.getElementById("pagination").innerHTML = html;
+    }
+
+    // ── Modals ──
+    function ouvrirModalAjout() {
+        document.getElementById("modalAjout").classList.add("active");
+    }
+    function ouvrirModalModifier(numero, prenom, nom, classe) {
+        document.getElementById("edit_numero").value  = numero;
+        document.getElementById("edit_prenom").value  = prenom;
+        document.getElementById("edit_nom").value     = nom;
+        document.getElementById("edit_classe").value  = classe;
+        document.getElementById("modalModifier").classList.add("active");
+    }
+    function fermerModals() {
+        document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("active"));
+    }
+
+    // ── Ajouter ──
+    async function ajouterEtudiant() {
+        const etudiant = {
+            code           : document.getElementById("add_code").value,
+            numero         : document.getElementById("add_numero").value,
+            prenom         : document.getElementById("add_prenom").value,
+            nom            : document.getElementById("add_nom").value,
+            date_naissance : document.getElementById("add_date").value,
+            classe         : document.getElementById("add_classe").value,
+        };
+        const response = await fetch("http://127.0.0.1:8000/etudiants", {
+            method  : "POST",
+            headers : { "Content-Type": "application/json" },
+            body    : JSON.stringify(etudiant)
+        });
+        const data = await response.json();
+        alert(data.message);
+        fermerModals();
+        chargerEtudiants();
+    }
+
+    // ── Modifier ──
+    async function modifierEtudiant() {
+        const numero = document.getElementById("edit_numero").value;
+        const data   = {
+            prenom : document.getElementById("edit_prenom").value,
+            nom    : document.getElementById("edit_nom").value,
+            classe : document.getElementById("edit_classe").value,
+        };
+        const response = await fetch(`http://127.0.0.1:8000/etudiants/${numero}`, {
+            method  : "PUT",
+            headers : { "Content-Type": "application/json" },
+            body    : JSON.stringify(data)
+        });
+        const result = await response.json();
+        alert(result.message);
+        fermerModals();
+        chargerEtudiants();
+    }
+
+    // ── Archiver ──
+    async function archiver(numero) {
+        if (!confirm(`Archiver l'étudiant ${numero} ?`)) return;
+        const response = await fetch(`http://127.0.0.1:8000/etudiants/${numero}/archiver`, {
+            method: "PUT"
+        });
+        const data = await response.json();
+        alert(data.message);
+        chargerEtudiants();
+    }
+
+    chargerEtudiants();
+</script>
+</body>
+</html>

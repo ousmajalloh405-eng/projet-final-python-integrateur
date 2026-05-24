@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestion des Étudiants</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f4f8; }
+
+        header {
+            background: #065A82; color: white;
+            padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-size: 24px; }
+        header a {
+            color: white; text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px; border-radius: 6px;
+        }
+
+        .kpi-container {
+            display: flex; gap: 20px;
+            padding: 30px; flex-wrap: wrap;
+        }
+        .kpi {
+            background: white; border-radius: 10px;
+            padding: 20px 30px; flex: 1; min-width: 150px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .kpi .nombre {
+            font-size: 42px; font-weight: bold; color: #065A82;
+        }
+        .kpi .label {
+            font-size: 14px; color: #666; margin-top: 5px;
+        }
+
+        .charts-container {
+            display: flex; gap: 20px;
+            padding: 0 30px 30px; flex-wrap: wrap;
+        }
+        .chart-box {
+            background: white; border-radius: 10px;
+            padding: 20px; flex: 1; min-width: 300px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .chart-box h3 { margin-bottom: 15px; color: #065A82; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📊 Dashboard — Statistiques</h1>
+    <a href="index.html">⬅️ Retour à la liste</a>
+</header>
+
+<!-- KPI -->
+<div class="kpi-container">
+    <div class="kpi">
+        <div class="nombre" id="total">—</div>
+        <div class="label">Total étudiants</div>
+    </div>
+    <div class="kpi">
+        <div class="nombre" id="total_archives">—</div>
+        <div class="label">Archivés</div>
+    </div>
+    <div class="kpi">
+        <div class="nombre" id="total_classes">—</div>
+        <div class="label">Classes</div>
+    </div>
+</div>
+
+<!-- GRAPHIQUES -->
+<div class="charts-container">
+    <div class="chart-box">
+        <h3>👥 Étudiants par classe</h3>
+        <canvas id="chartClasse"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>📈 Moyenne par classe</h3>
+        <canvas id="chartMoyenne"></canvas>
+    </div>
+</div>
+
+<script>
+    async function chargerStats() {
+        const response = await fetch("http://127.0.0.1:8000/stats");
+        const data = await response.json();
+
+        // KPI
+        document.getElementById("total").textContent = data.total;
+        document.getElementById("total_archives").textContent = data.total_archives;
+        document.getElementById("total_classes").textContent = data.par_classe.length;
+
+        const classes  = data.par_classe.map(c => c.classe);
+        const totaux   = data.par_classe.map(c => c.total);
+        const moyennes = data.par_classe.map(c => c.moyenne);
+
+        // Graphique 1 — Étudiants par classe
+        new Chart(document.getElementById("chartClasse"), {
+            type: "bar",
+            data: {
+                labels: classes,
+                datasets: [{
+                    label: "Nombre d'étudiants",
+                    data: totaux,
+                    backgroundColor: "#065A82",
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Graphique 2 — Moyenne par classe
+        new Chart(document.getElementById("chartMoyenne"), {
+            type: "line",
+            data: {
+                labels: classes,
+                datasets: [{
+                    label: "Moyenne générale",
+                    data: moyennes,
+                    borderColor: "#0EA5E9",
+                    backgroundColor: "rgba(14,165,233,0.1)",
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+
+    chargerStats();
+</script>
+</body>
+</html>
