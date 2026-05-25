@@ -48,3 +48,4 @@ CREATE INDEX IF NOT EXISTS idx_etudiants_numero  ON etudiants(numero);
 CREATE INDEX IF NOT EXISTS idx_etudiants_classe  ON etudiants(id_classe);
 CREATE INDEX IF NOT EXISTS idx_etudiants_archive ON etudiants(is_archived);
 CREATE INDEX IF NOT EXISTS idx_etudiant_matiere  ON etudiant_matiere(id_etudiant);
+AVG(moyenne)
