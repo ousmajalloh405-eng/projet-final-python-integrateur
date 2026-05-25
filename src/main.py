@@ -233,3 +233,33 @@ def get_stats():
         "total_archives": total_archives,
         "par_classe"    : par_classe
     }
+@app.put("/etudiants/{numero}/restaurer")
+def restaurer_etudiant(numero: str):
+    conn = get_connection()
+    if not conn:
+        return {"erreur": "Connexion échouée"}
+    cur = conn.cursor()
+    cur.execute("UPDATE etudiants SET is_archived = FALSE WHERE numero = %s", (numero,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": f"✅ Étudiant {numero} restauré !"}
+@app.get("/etudiants/archives")
+def get_archives():
+    conn = get_connection()
+    if not conn:
+        return {"erreur": "Connexion échouée"}
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT e.id, e.code, e.numero, e.prenom, e.nom,
+               e.date_naissance, c.nom_classe, e.source
+        FROM etudiants e
+        JOIN classes c ON e.id_classe = c.id
+        WHERE e.is_archived = TRUE
+        ORDER BY e.nom, e.prenom
+    """)
+    colonnes  = [desc[0] for desc in cur.description]
+    resultats = [dict(zip(colonnes, row)) for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return {"total": len(resultats), "etudiants": resultats}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives - Gestion des Étudiants</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f4f8; }
+
+        header {
+            background: #065A82; color: white;
+            padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-size: 24px; }
+        header a {
+            color: white; text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px; border-radius: 6px;
+        }
+
+        .stats { padding: 10px 30px; font-size: 14px; color: #666; }
+
+        .table-container {
+            margin: 10px 30px; background: white;
+            border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #EF4444; color: white; }
+        thead th { padding: 12px 15px; text-align: left; font-size: 14px; }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+        tbody tr:hover { background: #fee2e2; }
+        tbody td { padding: 10px 15px; font-size: 14px; border-bottom: 1px solid #eee; }
+
+        .btn {
+            padding: 6px 14px; border: none;
+            border-radius: 6px; cursor: pointer; font-size: 13px;
+        }
+        .btn-success { background: #10B981; color: white; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🗄️ Archives</h1>
+    <a href="index.html">⬅️ Retour à la liste</a>
+</header>
+
+<div class="stats" id="stats">Chargement...</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Classe</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableau">
+            <tr><td colspan="5" class="loading">⏳ Chargement...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    async function chargerArchives() {
+        const response = await fetch("http://127.0.0.1:8000/etudiants/archives");
+        const data = await response.json();
+
+        document.getElementById("stats").textContent =
+            `${data.total} étudiant(s) archivé(s)`;
+
+        const tbody = document.getElementById("tableau");
+        if (data.etudiants.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="loading">Aucun étudiant archivé</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.etudiants.map(e => `
+            <tr>
+                <td>${e.numero}</td>
+                <td>${e.nom}</td>
+                <td>${e.prenom}</td>
+                <td>${e.nom_classe}</td>
+                <td>
+                    <button class="btn btn-success"
+                        onclick="restaurer('${e.numero}')">
+                        🔄 Restaurer
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    async function restaurer(numero) {
+        if (!confirm(`Restaurer l'étudiant ${numero} ?`)) return;
+        const response = await fetch(`http://127.0.0.1:8000/etudiants/${numero}/restaurer`, {
+            method: "PUT"
+        });
+        const data = await response.json();
+        alert(data.message);
+        chargerArchives();
+    }
+
+    chargerArchives();
+</script>
+</body>
+</html>
