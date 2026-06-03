@@ -12,8 +12,14 @@
             background: #065A82; color: white;
             padding: 20px 30px;
             display: flex; justify-content: space-between; align-items: center;
+            gap: 10px;
         }
         header h1 { font-size: 24px; }
+        header a {
+            color: white; text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px; border-radius: 6px; font-size: 14px;
+        }
 
         .toolbar {
             background: white; padding: 15px 30px;
@@ -64,7 +70,6 @@
         }
         .pagination button.active { background: #065A82; color: white; }
 
-        /* Modal */
         .modal-overlay {
             display: none; position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -94,7 +99,8 @@
 <header>
     <h1>🎓 Gestion des Étudiants</h1>
     <span>Ousmane Jalloh · DEV DATA P8</span>
-<a href="dashboard.html" style="color:white;text-decoration:none;background:rgba(255,255,255,0.2);padding:8px 15px;border-radius:6px;">📊 Dashboard</a>
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="archives.html">🗄️ Archives</a>
 </header>
 
 <!-- BARRE DE RECHERCHE -->
@@ -116,8 +122,10 @@
         <thead>
             <tr>
                 <th>Numéro</th>
+                <th>Code</th>
                 <th>Nom</th>
                 <th>Prénom</th>
+                <th>Date naissance</th>
                 <th>Classe</th>
                 <th>Moyenne</th>
                 <th>Source</th>
@@ -125,7 +133,7 @@
             </tr>
         </thead>
         <tbody id="tableau">
-            <tr><td colspan="7" class="loading">⏳ Chargement...</td></tr>
+            <tr><td colspan="9" class="loading">⏳ Chargement...</td></tr>
         </tbody>
     </table>
 </div>
@@ -200,7 +208,7 @@
 
     async function chargerEtudiants() {
         document.getElementById("tableau").innerHTML =
-            '<tr><td colspan="7" class="loading">⏳ Chargement...</td></tr>';
+            '<tr><td colspan="9" class="loading">⏳ Chargement...</td></tr>';
         const response = await fetch("http://127.0.0.1:8000/etudiants");
         const data = await response.json();
         tousLesEtudiants = data.etudiants;
@@ -238,25 +246,27 @@
             `${etudiantsFiltres.length} étudiant(s) trouvé(s)`;
         const tbody = document.getElementById("tableau");
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="loading">Aucun étudiant trouvé</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="loading">Aucun étudiant trouvé</td></tr>';
             return;
         }
         tbody.innerHTML = data.map(e => `
             <tr>
                 <td>${e.numero}</td>
+                <td>${e.code}</td>
                 <td>${e.nom}</td>
                 <td>${e.prenom}</td>
+                <td>${e.date_naissance || "—"}</td>
                 <td>${e.nom_classe}</td>
                 <td>${e.moyenne_generale || "—"}</td>
                 <td><span class="badge badge-${e.source.toLowerCase()}">${e.source}</span></td>
                 <td>
-                    <button class="btn btn-warning" style="padding:4px 10px;font-size:12px"
+                    <button class="btn btn-warning" style="padding:6px 12px;font-size:12px"
                         onclick="ouvrirModalModifier('${e.numero}','${e.prenom}','${e.nom}','${e.nom_classe}')">
-                        ✏️
+                        ✏️ Modifier
                     </button>
-                    <button class="btn btn-danger" style="padding:4px 10px;font-size:12px"
+                    <button class="btn btn-danger" style="padding:6px 12px;font-size:12px"
                         onclick="archiver('${e.numero}')">
-                        🗄️
+                        🗄️ Archiver
                     </button>
                 </td>
             </tr>
@@ -274,22 +284,22 @@
         document.getElementById("pagination").innerHTML = html;
     }
 
-    // ── Modals ──
     function ouvrirModalAjout() {
         document.getElementById("modalAjout").classList.add("active");
     }
+
     function ouvrirModalModifier(numero, prenom, nom, classe) {
-        document.getElementById("edit_numero").value  = numero;
-        document.getElementById("edit_prenom").value  = prenom;
-        document.getElementById("edit_nom").value     = nom;
-        document.getElementById("edit_classe").value  = classe;
+        document.getElementById("edit_numero").value = numero;
+        document.getElementById("edit_prenom").value = prenom;
+        document.getElementById("edit_nom").value    = nom;
+        document.getElementById("edit_classe").value = classe;
         document.getElementById("modalModifier").classList.add("active");
     }
+
     function fermerModals() {
         document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("active"));
     }
 
-    // ── Ajouter ──
     async function ajouterEtudiant() {
         const etudiant = {
             code           : document.getElementById("add_code").value,
@@ -310,10 +320,9 @@
         chargerEtudiants();
     }
 
-    // ── Modifier ──
     async function modifierEtudiant() {
         const numero = document.getElementById("edit_numero").value;
-        const data   = {
+        const data = {
             prenom : document.getElementById("edit_prenom").value,
             nom    : document.getElementById("edit_nom").value,
             classe : document.getElementById("edit_classe").value,
@@ -329,7 +338,6 @@
         chargerEtudiants();
     }
 
-    // ── Archiver ──
     async function archiver(numero) {
         if (!confirm(`Archiver l'étudiant ${numero} ?`)) return;
         const response = await fetch(`http://127.0.0.1:8000/etudiants/${numero}/archiver`, {
@@ -344,5 +352,3 @@
 </script>
 </body>
 </html>
-<a href="dashboard.html" style="color:white;text-decoration:none;background:rgba(255,255,255,0.2);padding:8px 15px;border-radius:6px;">📊 Dashboard</a>
-<a href="archives.html" style="color:white;text-decoration:none;background:rgba(255,255,255,0.2);padding:8px 15px;border-radius:6px;">🗄️ Archives</a>

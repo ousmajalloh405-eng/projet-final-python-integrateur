@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .conteneur {
+      text-align: center;
+      margin: 50px auto;
+      width: 400px;
+    }
+
+    .bouton-zone {
+      margin-bottom: 20px;
+    }
+
+    .image-zone {
+      border: 2px solid gray;
+      padding: 20px;
+      border-radius: 10px;
+      min-height: 100px;
+    }
+
+    #monImage {
+      display: none;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Conteneur principal -->
+  <div class="conteneur">
+
+    <!-- Zone du bouton -->
+    <div class="bouton-zone">
+      <button onclick="afficherImage()">Voir l'image</button>
+    </div>
+
+    <!-- Zone de l'image -->
+    <div class="image-zone">
+      <img id="monImage" src="ton-image.jpg" alt="mon image">
+    </div>
+
+  </div>
+
+  <script>
+    function afficherImage() {
+      const image = document.getElementById("monImage");
+      image.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>

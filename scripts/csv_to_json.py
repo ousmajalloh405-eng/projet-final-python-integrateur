@@ -1,7 +1,5 @@
-# ============================================================
+
 # SCRIPT : Conversion CSV → JSON
-# AUTEURE : Ndeye Penda Sarr
-# ============================================================
 
 import csv
 import json

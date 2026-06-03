@@ -1,7 +1,6 @@
-# ============================================================
+
 # SCRIPT : Import valides.json → PostgreSQL
-# AUTEURE : Ndeye Penda Sarr
-# ============================================================
+
 
 import json
 import sys

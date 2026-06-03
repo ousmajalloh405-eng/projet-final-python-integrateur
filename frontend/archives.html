@@ -56,11 +56,14 @@
         <thead>
             <tr>
                 <th>Numéro</th>
+                <th>Code</th>
                 <th>Nom</th>
                 <th>Prénom</th>
+                <th>Date naissance</th>
                 <th>Classe</th>
                 <th>Action</th>
             </tr>
+
         </thead>
         <tbody id="tableau">
             <tr><td colspan="5" class="loading">⏳ Chargement...</td></tr>
@@ -70,7 +73,7 @@
 
 <script>
     async function chargerArchives() {
-        const response = await fetch("http://127.0.0.1:8000/etudiants/archives");
+       const response = await fetch("http://127.0.0.1:8000/archives");
         const data = await response.json();
 
         document.getElementById("stats").textContent =
@@ -83,12 +86,15 @@
         }
 
         tbody.innerHTML = data.etudiants.map(e => `
-            <tr>
-                <td>${e.numero}</td>
-                <td>${e.nom}</td>
-                <td>${e.prenom}</td>
-                <td>${e.nom_classe}</td>
-                <td>
+        <tr>
+                    <td>${e.numero}</td>
+                    <td>${e.code}</td>
+                    <td>${e.nom}</td>
+                    <td>${e.prenom}</td>
+                    <td>${e.date_naissance || "—"}</td>
+                    <td>${e.nom_classe}</td>
+                    <td><tr>
+               <td>
                     <button class="btn btn-success"
                         onclick="restaurer('${e.numero}')">
                         🔄 Restaurer

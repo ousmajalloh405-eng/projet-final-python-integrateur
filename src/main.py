@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Modèle pour ajouter un étudiant ──
+# Modèle pour ajouter un étudiant 
 class EtudiantCreate(BaseModel):
     code      : str
     numero    : str
@@ -37,9 +37,9 @@ class EtudiantUpdate(BaseModel):
     date_naissance : Optional[str] = None
     classe    : Optional[str] = None
 
-# ─────────────────────────────────────────────
+
 # ROUTE 1 : Health check
-# ─────────────────────────────────────────────
+
 @app.get("/")
 def health_check():
     return {
@@ -47,9 +47,9 @@ def health_check():
         "message" : "Bienvenue sur l'API Gestion des Étudiants"
     }
 
-# ─────────────────────────────────────────────
+
 # ROUTE 2 : Liste des étudiants
-# ─────────────────────────────────────────────
+
 @app.get("/etudiants")
 def get_etudiants():
     conn = get_connection()
@@ -76,9 +76,9 @@ def get_etudiants():
 
     return {"total": len(resultats), "etudiants": resultats}
 
-# ─────────────────────────────────────────────
+
 # ROUTE 3 : Un étudiant par numéro
-# ─────────────────────────────────────────────
+
 @app.get("/etudiants/{numero}")
 def get_etudiant(numero: str):
     conn = get_connection()
@@ -106,9 +106,9 @@ def get_etudiant(numero: str):
 
     return dict(zip(colonnes, row))
 
-# ─────────────────────────────────────────────
+
 # ROUTE 4 : Ajouter un étudiant
-# ─────────────────────────────────────────────
+
 @app.post("/etudiants")
 def ajouter_etudiant(etudiant: EtudiantCreate):
     conn = get_connection()
@@ -148,9 +148,9 @@ def ajouter_etudiant(etudiant: EtudiantCreate):
 
     return {"message": "✅ Étudiant ajouté !", "id": id_etudiant}
 
-# ─────────────────────────────────────────────
+
 # ROUTE 5 : Modifier un étudiant
-# ─────────────────────────────────────────────
+
 @app.put("/etudiants/{numero}")
 def modifier_etudiant(numero: str, data: EtudiantUpdate):
     conn = get_connection()
@@ -181,9 +181,9 @@ def modifier_etudiant(numero: str, data: EtudiantUpdate):
 
     return {"message": f"✅ Étudiant {numero} modifié !"}
 
-# ─────────────────────────────────────────────
+
 # ROUTE 6 : Archiver un étudiant
-# ─────────────────────────────────────────────
+
 @app.put("/etudiants/{numero}/archiver")
 def archiver_etudiant(numero: str):
     conn = get_connection()
@@ -244,7 +244,7 @@ def restaurer_etudiant(numero: str):
     cur.close()
     conn.close()
     return {"message": f"✅ Étudiant {numero} restauré !"}
-@app.get("/etudiants/archives")
+@app.get("/archives")
 def get_archives():
     conn = get_connection()
     if not conn:
